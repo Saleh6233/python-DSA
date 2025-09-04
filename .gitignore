@@ -4,8 +4,12 @@ __pycache__/
 .venv/
 venv/
 *.pyc
-
+*.pyo
+*.pyd
 # editor
 .vscode/
 .idea/
 EOF
+
+# Jupyter
+.ipynb_checkpoints/
