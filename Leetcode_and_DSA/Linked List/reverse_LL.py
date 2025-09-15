@@ -13,6 +13,8 @@ Example 3:
 Input: head = []
 Output: []
 
+Extra help: https://dipanjals-notebook.vercel.app/leetcode/linked-list/reverse-a-linked-list/
+
 """
 from typing import Optional
 

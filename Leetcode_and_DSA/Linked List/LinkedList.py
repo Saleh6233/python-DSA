@@ -84,7 +84,203 @@ class LinkedList:
             self.tail = None
 
         # Return the removed node
-        return temp.value
+        return temp
+
+    def prepend(self, value):
+        """
+        Insert a new node with `value` at the start (head) of the list.
+        Runs in O(1) time because we only change a couple of pointers.
+        Returns True on success.
+        """
+        new_node = Node(value)
+
+        if self.length == 0:
+            # empty list: head and tail both become the new node
+            self.head = new_node
+            self.tail = new_node
+        else:
+            # non-empty list: point new_node to current head, then update head
+            new_node.next = self.head
+            self.head = new_node
+
+        self.length += 1
+        return True
+
+    def pop_first(self):
+        """
+        Remove and return the first node of the linked list.
+
+        Behaviour:
+        - If the list is empty, return None.
+        - Otherwise remove the head node, update head (and tail if list becomes empty),
+            decrement length, and return the removed node.
+
+        Time complexity: O(1)
+        Space complexity: O(1)
+        """
+        # empty list -> nothing to remove
+        if self.length == 0:
+            return None
+
+        # save current head (node to remove)
+        temp = self.head
+
+        # advance head to the next node (this unlinks the first node from the list)
+        self.head = self.head.next
+
+        # detach removed node from list to avoid dangling references
+        temp.next = None
+
+        # decrement stored length
+        self.length -= 1
+
+        # if the list is now empty (we removed the only node), clear tail as well
+        if self.length == 0:
+            self.tail = None
+
+        # return the removed node (caller can inspect .value/.val or re-link it)
+        return temp
+
+    def get(self, index: int):
+        """
+        Return the node at `index` (0-based).
+        Returns None if index is out of bounds.
+
+        Time complexity: O(n)
+        Space complexity: O(1)
+        """
+        # quick bounds check (negative or past end)
+        if index < 0 or index >= self.length:
+            return None
+
+        # start from the head and walk `index` steps
+        temp = self.head
+        for _ in range(index):
+            temp = temp.next
+
+        # temp now refers to the node at `index`; return its value
+        return temp
+
+    def set_value(self, index: int, value) -> bool:
+        """
+        Set the node at `index` to `value` using the get() helper.
+
+        Returns True on success, False if index is out of bounds.
+
+        Time: O(n) — dominated by get()
+        Space: O(1)
+        """
+        node = self.get(index)   # reuses get to locate the node
+        if node is None:
+            return False
+        node.value = value
+        return True
+
+    def insert(self, index: int, value) -> bool:
+        """
+        Insert a new node with `value` at position `index` (0-based).
+
+        Returns:
+        True if insertion succeeded, False if index is out of bounds.
+
+        Time complexity: O(n) in the worst case (needs to walk to index-1).
+        Space complexity: O(1)
+        """
+        # valid indexes for insert are 0..length (inclusive at end)
+        if index < 0 or index > self.length:
+            return False
+
+        # insert at head
+        if index == 0:
+            return self.prepend(value)
+
+        # insert at tail (append)
+        if index == self.length:
+            return self.append(value)
+
+        # middle insertion:
+        # create the new node to insert
+        new_node = Node(value)
+
+        # find node before insertion point (assumes get returns the Node)
+        prev = self.get(index - 1)
+        # safety: if get unexpectedly returned None, fail gracefully
+        if prev is None:
+            return False
+
+        # splice the new node in
+        new_node.next = prev.next
+        prev.next = new_node
+
+        # update length
+        self.length += 1
+        return True
+
+    def remove(self, index):
+        """
+        Remove and return the node at `index` (0-based).
+        Returns:
+        - the removed node on success
+        - None if index is out of bounds
+
+        Time complexity: O(n)
+        Space complexity: O(1)
+        """
+        # bounds check: valid indexes are 0 .. self.length-1
+        if index < 0 or index >= self.length:
+            return None
+
+        # remove head
+        if index == 0:
+            return self.pop_first()
+
+        # remove tail
+        if index == self.length - 1:
+            return self.pop()
+
+        # find node before the one we want to remove
+        prev = self.get(index - 1)  # assumes get returns the Node
+        # safety check: if get unexpectedly returned None, abort
+        if prev is None or prev.next is None:
+            return None
+
+        # unlink the node to remove
+        temp = prev.next           # node to remove
+        prev.next = temp.next      # bypass temp
+        temp.next = None          # detach temp from list
+        self.length -= 1          # decrement length
+
+        return temp               # return removed node
+
+    def reverse(self):
+        """
+        Reverse the linked list in-place.
+
+        Behaviour:
+        - After calling, head points to the original tail, and tail points to the original head.
+        - Works correctly for empty and single-node lists (no-op).
+
+        Time complexity: O(n)
+        Space complexity: O(1)
+        """
+        # empty or single-node list -> nothing to do
+        if self.head is None or self.head.next is None:
+            return
+
+        prev = None              # previous node (becomes new next)
+        curr = self.head         # current node we are processing
+        self.tail = self.head    # original head will become the new tail
+
+        # iterate and reverse pointers
+        while curr is not None:
+            # save next node (so we don't lose the remainder)
+            nxt = curr.next
+            curr.next = prev     # reverse the pointer
+            prev = curr          # advance prev to include curr
+            curr = nxt           # move to next node in original list
+
+        # prev is the new head (original tail)
+        self.head = prev
 
 
 if __name__ == "__main__":
@@ -102,8 +298,45 @@ if __name__ == "__main__":
     print('\n', 'Removing all values:')
     print(my_linked_list.pop())
     print(my_linked_list.pop())
-    print(my_linked_list.pop())
 
-    print('\nHead:', my_linked_list.head.value)
-    print('Tail:', my_linked_list.tail.value)
-    print('Length:', my_linked_list.length, '\n')
+    my_linked_list.prepend(3)
+    print('Linked List:')
+    my_linked_list.printLL()
+
+    print("\n", 'Using Pop first')
+    print(my_linked_list.pop_first())
+    print(my_linked_list.pop_first())
+
+    my_linked_list.append(12)
+    my_linked_list.append(15)
+    my_linked_list.append(34)
+    my_linked_list.append(7)
+
+    print('\nLinked List:')
+    my_linked_list.printLL()
+
+    print("\nGet value at index 2 is:")
+    print(my_linked_list.get(2))
+
+    print("\nChanging value at index 2 is:")
+    my_linked_list.set_value(2, 3)
+
+    print('\nLinked List:')
+    my_linked_list.printLL()
+
+    print('\nInserting new node at index 1:')
+    my_linked_list.insert(1, 4)
+
+    print('\nLinked List:')
+    my_linked_list.printLL()
+
+    print('\nRemoving new node at index 2:')
+    my_linked_list.remove(2)
+
+    print('LL before reverse():')
+    my_linked_list.printLL()
+
+    my_linked_list.reverse()
+
+    print('\nLL after reverse():')
+    my_linked_list.printLL()
