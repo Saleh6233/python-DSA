@@ -94,6 +94,51 @@ class DoublyLinkedList:
 
         return temp
 
+    def set_value(self, index, value) -> bool:
+        temp = self.get(index)
+        if temp is not None:
+            temp.value = value
+            return True
+        return False
+
+    def insert(self, index, value):
+        if index < 0 or index >= self.length:
+            return False
+        if index == 0:
+            return self.prepend(value)
+        if index == self.length:
+            return self.append(value)
+
+        new_node = Node(value)
+        before = self.get(index-1)
+        after = before.next
+
+        new_node.prev = before
+        new_node.next = after
+        before.next = new_node
+        after.prev = new_node
+
+        self.length += 1
+        return True
+
+    def remove(self, index):
+        if index < 0 or index >= self.length:
+            return None
+        if index == 0:
+            return self.pop_first()
+        if index == self.length:
+            return self.pop()
+
+        temp = self.get(index)
+        before = temp.prev
+        after = temp.next
+
+        before.next = after
+        after.prev = before
+
+        self.length -= 1
+        return temp
+
 
 if __name__ == "__main__":
 
@@ -113,3 +158,15 @@ if __name__ == "__main__":
     print(my_linked_list.print_list())
 
     print(my_linked_list.get(0))
+
+    my_linked_list.append(11)
+    my_linked_list.append(23)
+    my_linked_list.append(7)
+    my_linked_list.print_list()
+
+    my_linked_list.set_value(0, 13)
+    my_linked_list.print_list()
+
+    my_linked_list.insert(1, 3)
+    my_linked_list.print_list()
+    print(my_linked_list.length)
